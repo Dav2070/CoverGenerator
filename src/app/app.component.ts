@@ -3,6 +3,9 @@ import { ReadFile } from 'ngx-file-helpers'
 import { decode, encode } from 'blurhash'
 import { BlobToBase64, PromiseHolder } from 'dav-js'
 
+const authorNameFontSize = 84
+const titleFontSize = 118
+
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.component.html',
@@ -13,6 +16,8 @@ export class AppComponent {
 	canvasContext: CanvasRenderingContext2D
 	imageWidth: number = 500
 	imageHeight: number = 500
+	author: string = ""
+	title: string = ""
 
 	ngOnInit() {
 		this.canvasContext = this.canvas.nativeElement.getContext('2d')
@@ -57,5 +62,26 @@ export class AppComponent {
 
 		// Add the blurhashed bottom part to the canvas
 		this.canvasContext.putImageData(blurhashImageData, 0, bottomPartStart)
+
+		let firstBlurhashPixelColor = blurhashImageData.data[0] + blurhashImageData.data[1] + blurhashImageData.data[2]
+		let textColor = firstBlurhashPixelColor > 382 ? "black" : "white"
+
+		// Write the author name to the canvas
+		this.canvasContext.fillStyle = textColor
+		this.canvasContext.textAlign = "center"
+		this.canvasContext.font = `${authorNameFontSize}pt Roboto Light`
+		this.canvasContext.fillText(
+			this.author,
+			this.imageWidth / 2,
+			(bottomPartStart + authorNameFontSize / 2) + (bottomPartHeight / 4)
+		)
+
+		// Write the title to the canvas
+		this.canvasContext.font = `${titleFontSize}pt Roboto`
+		this.canvasContext.fillText(
+			this.title,
+			this.imageWidth / 2,
+			(bottomPartStart + titleFontSize / 2) + (bottomPartHeight / 2) + (bottomPartHeight / 7)
+		)
 	}
 }
