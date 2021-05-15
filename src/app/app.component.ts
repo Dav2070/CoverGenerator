@@ -14,6 +14,8 @@ const titleFontSize = 118
 export class AppComponent {
 	@ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>
 	canvasContext: CanvasRenderingContext2D
+	imageName: string = ""
+	imageData: string = null
 	imageWidth: number = 500
 	imageHeight: number = 500
 	author: string = ""
@@ -23,18 +25,17 @@ export class AppComponent {
 		this.canvasContext = this.canvas.nativeElement.getContext('2d')
 	}
 
-	async ImageFilePicked(file: ReadFile) {
+	async Start() {
+		if (this.imageData == null) return
+		
+		// Clear the canvas
 		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
-
-		// Read the selected imgae file
-		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
-		let imageBase64 = await BlobToBase64(imageBlob)
 
 		let image = new Image()
 		let imageLoadPromiseHolder = new PromiseHolder()
 
 		image.onload = () => imageLoadPromiseHolder.resolve()
-		image.src = imageBase64
+		image.src = this.imageData
 		await imageLoadPromiseHolder.AwaitResult()
 
 		this.imageWidth = image.width
@@ -83,5 +84,12 @@ export class AppComponent {
 			this.imageWidth / 2,
 			(bottomPartStart + titleFontSize / 2) + (bottomPartHeight / 2) + (bottomPartHeight / 7)
 		)
+	}
+
+	async ImageFilePicked(file: ReadFile) {
+		// Read the selected imgae file
+		this.imageName = file.name
+		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
+		this.imageData = await BlobToBase64(imageBlob)
 	}
 }
