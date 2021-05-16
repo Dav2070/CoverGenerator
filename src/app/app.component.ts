@@ -4,7 +4,7 @@ import { decode, encode } from 'blurhash'
 import { BlobToBase64, PromiseHolder } from 'dav-js'
 
 const authorNameFontSize = 84
-const titleFontSize = 118
+const defaultTitleFontSize = 118
 
 @Component({
 	selector: 'app-root',
@@ -20,6 +20,7 @@ export class AppComponent {
 	imageHeight: number = 500
 	author: string = ""
 	title: string = ""
+	titleFontSize: number = null
 
 	ngOnInit() {
 		this.canvasContext = this.canvas.nativeElement.getContext('2d')
@@ -67,23 +68,69 @@ export class AppComponent {
 		let firstBlurhashPixelColor = blurhashImageData.data[0] + blurhashImageData.data[1] + blurhashImageData.data[2]
 		let textColor = firstBlurhashPixelColor > 382 ? "black" : "white"
 
+		// Get the title
+		let titleParts = this.title.split('\n')
+		let titleFirstLine = titleParts[0]
+		let titleSecondLine = ""
+
+		if (titleParts.length > 1) {
+			titleSecondLine = titleParts[1]
+		}
+
 		// Write the author name to the canvas
 		this.canvasContext.fillStyle = textColor
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.font = `${authorNameFontSize}pt Roboto Light`
+
+		let authorNameYPosition = (bottomPartStart + authorNameFontSize / 2) + (bottomPartHeight / 4)
+		if (titleSecondLine.length > 0) authorNameYPosition = (bottomPartStart + authorNameFontSize / 2) + (bottomPartHeight / 6)
+
 		this.canvasContext.fillText(
 			this.author,
 			this.imageWidth / 2,
-			(bottomPartStart + authorNameFontSize / 2) + (bottomPartHeight / 4)
+			authorNameYPosition
 		)
 
 		// Write the title to the canvas
+		let titleFontSize = defaultTitleFontSize
+
+		if (this.titleFontSize == null) {
+			// Font sizes: 0-15 length -> 118
+			// + 1 length -> -5 pt
+			if (titleFirstLine.length > 15) {
+				titleFontSize = titleFontSize - ((titleFirstLine.length - 15) * 4)
+			}
+		} else {
+			titleFontSize = this.titleFontSize
+		}
+		if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
+		console.log("Title font size: " + titleFontSize)
+
 		this.canvasContext.font = `${titleFontSize}pt Roboto`
-		this.canvasContext.fillText(
-			this.title,
-			this.imageWidth / 2,
-			(bottomPartStart + titleFontSize / 2) + (bottomPartHeight / 2) + (bottomPartHeight / 7)
-		)
+
+		if (titleSecondLine.length == 0) {
+			// One line of text
+			this.canvasContext.fillText(
+				titleFirstLine,
+				this.imageWidth / 2,
+				(bottomPartStart + titleFontSize / 2) + (bottomPartHeight / 2) + (bottomPartHeight / 7)
+			)
+		} else {
+			// Two lines of text
+			let bottomTitlePartHeight = this.imageHeight - authorNameYPosition
+
+			this.canvasContext.fillText(
+				titleFirstLine,
+				this.imageWidth / 2,
+				(authorNameYPosition + titleFontSize / 2) + (bottomTitlePartHeight / 3.3)
+			)
+
+			this.canvasContext.fillText(
+				titleSecondLine,
+				this.imageWidth / 2,
+				(authorNameYPosition + titleFontSize / 2) + (bottomTitlePartHeight / 2) + (bottomTitlePartHeight / 5)
+			)
+		}
 	}
 
 	async ImageFilePicked(file: ReadFile) {

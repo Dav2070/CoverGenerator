@@ -25,7 +25,12 @@
 
 			<div class="mt-3">
 				<label for="title">Title</label><br>
-				<input name="title" type="text" placeholder="Book title" [(ngModel)]="title">
+				<textarea name="title" placeholder="Book title" [(ngModel)]="title" rows="2"></textarea>
+			</div>
+
+			<div class="mt-3">
+				<label for="font-size">Title font size</label><br>
+				<input name="font-size" type="number" [(ngModel)]="titleFontSize">
 			</div>
 
 			<button
