@@ -100,10 +100,11 @@ export class AppComponent {
 			if (titleFirstLine.length > 15) {
 				titleFontSize = titleFontSize - ((titleFirstLine.length - 15) * 4)
 			}
+
+			if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
 		} else {
 			titleFontSize = this.titleFontSize
 		}
-		if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
 		console.log("Title font size: " + titleFontSize)
 
 		this.canvasContext.font = `${titleFontSize}pt Roboto`
