@@ -52,7 +52,7 @@ export class AppComponent {
 		)
 
 		// Generate the blurhash for the bottom part
-		let bottomPartHeight = this.imageHeight * 0.24
+		let bottomPartHeight = Math.ceil(this.imageHeight * 0.24)
 		let bottomPartStart = this.imageHeight - bottomPartHeight
 		let imageData = this.canvasContext.getImageData(0, bottomPartStart, this.imageWidth, bottomPartHeight)
 
