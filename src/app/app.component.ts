@@ -3,7 +3,7 @@ import { ReadFile } from 'ngx-file-helpers'
 import { decode, encode } from 'blurhash'
 import { BlobToBase64, PromiseHolder } from 'dav-js'
 
-const authorNameFontSize = 84
+const defaultAuthorNameFontSize = 84
 const defaultTitleFontSize = 118
 
 @Component({
@@ -28,7 +28,7 @@ export class AppComponent {
 
 	async Start() {
 		if (this.imageData == null) return
-		
+
 		// Clear the canvas
 		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
 
@@ -78,6 +78,7 @@ export class AppComponent {
 		}
 
 		// Write the author name to the canvas
+		let authorNameFontSize = this.GetDefaultAuthorNameFontSize(this.imageHeight)
 		this.canvasContext.fillStyle = textColor
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.font = `${authorNameFontSize}pt Roboto Light`
@@ -106,6 +107,7 @@ export class AppComponent {
 			titleFontSize = this.titleFontSize
 		}
 		console.log("Title font size: " + titleFontSize)
+		titleFontSize = this.CalculateFontSizeRelativeToHeight(titleFontSize, this.imageHeight)
 
 		this.canvasContext.font = `${titleFontSize}pt Roboto`
 
@@ -139,5 +141,13 @@ export class AppComponent {
 		this.imageName = file.name
 		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
 		this.imageData = await BlobToBase64(imageBlob)
+	}
+
+	CalculateFontSizeRelativeToHeight(originalFontSize: number, resultHeight: number): number {
+		return Math.ceil((originalFontSize / 2100) * resultHeight)
+	}
+
+	GetDefaultAuthorNameFontSize(height: number): number {
+		return this.CalculateFontSizeRelativeToHeight(defaultAuthorNameFontSize, height)
 	}
 }
