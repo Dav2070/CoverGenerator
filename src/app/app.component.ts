@@ -48,7 +48,7 @@ export class AppComponent {
 
 		this.canvasContext.drawImage(image,
 			0, 0, this.imageWidth - 1, this.imageHeight - 1,
-			0, 0, this.imageWidth, this.imageHeight
+			0, 0, this.imageWidth - 1, this.imageHeight - 1
 		)
 
 		// Generate the blurhash for the bottom part
@@ -56,7 +56,7 @@ export class AppComponent {
 		let bottomPartStart = this.imageHeight - bottomPartHeight
 		let imageData = this.canvasContext.getImageData(0, bottomPartStart, this.imageWidth, bottomPartHeight)
 
-		let blurhash = encode(imageData.data, imageData.width, imageData.height, 4, 3)
+		let blurhash = encode(imageData.data, imageData.width, imageData.height, 2, 2)
 
 		let blurhashPixels = decode(blurhash, this.imageWidth, bottomPartHeight)
 		let blurhashImageData = this.canvasContext.createImageData(this.imageWidth, bottomPartHeight)
