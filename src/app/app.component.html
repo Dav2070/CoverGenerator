@@ -8,11 +8,11 @@
 	<div class="w-25 d-flex justify-content-center" style="background-color: #eaeaea; height: 100vh">
 		<form class="mt-5">
 			<button
+				class="btn btn-primary"
 				type="button"
 				ngxFilePicker
 				accept="image/png,image/jpeg"
-				(filePick)="ImageFilePicked($event)"
-			>
+				(filePick)="ImageFilePicked($event)">
 				Select image
 			</button>
 
@@ -34,11 +34,20 @@
 			</div>
 
 			<button
-				class="mt-3"
+				class="mt-3 btn btn-primary"
 				type="button"
 				(click)="Start()">
 				Start
 			</button>
+
+			<a
+				class="ml-3 mt-3 btn btn-secondary"
+				type="button"
+				[href]="imageDataBase64"
+				[download]="downloadTitle"
+				*ngIf="imageDataBase64">
+				Download
+			</a>
 		</form>
 	</div>
 </div>

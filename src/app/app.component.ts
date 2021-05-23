@@ -21,6 +21,8 @@ export class AppComponent {
 	author: string = ""
 	title: string = ""
 	titleFontSize: number = null
+	imageDataBase64: string = ""
+	downloadTitle: string = ""
 
 	ngOnInit() {
 		this.canvasContext = this.canvas.nativeElement.getContext('2d')
@@ -47,8 +49,8 @@ export class AppComponent {
 		this.canvas.nativeElement.setAttribute("height", this.imageHeight.toString())
 
 		this.canvasContext.drawImage(image,
-			0, 0, this.imageWidth - 1, this.imageHeight - 1,
-			0, 0, this.imageWidth - 1, this.imageHeight - 1
+			0, 0, this.imageWidth, this.imageHeight,
+			0, 0, this.imageWidth, this.imageHeight
 		)
 
 		// Generate the blurhash for the bottom part
@@ -134,6 +136,9 @@ export class AppComponent {
 				(authorNameYPosition + titleFontSize / 2) + (bottomTitlePartHeight / 2) + (bottomTitlePartHeight / 5)
 			)
 		}
+
+		this.imageDataBase64 = this.canvas.nativeElement.toDataURL("image/jpeg")
+		this.downloadTitle = this.title.replace('\n', ' ') + ".jpg"
 	}
 
 	async ImageFilePicked(file: ReadFile) {
