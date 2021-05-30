@@ -20,7 +20,9 @@ export class AppComponent {
 	imageHeight: number = 500
 	author: string = ""
 	title: string = ""
+	overwriteSettings: boolean = false
 	titleFontSize: number = null
+	titleTextColorBlack: boolean = true
 	imageDataBase64: string = ""
 	downloadTitle: string = ""
 
@@ -30,6 +32,10 @@ export class AppComponent {
 
 	async Start() {
 		if (this.imageData == null) return
+		if (
+			this.overwriteSettings
+			&& this.titleFontSize == null
+		) return
 
 		// Clear the canvas
 		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
@@ -70,6 +76,10 @@ export class AppComponent {
 		let firstBlurhashPixelColor = blurhashImageData.data[0] + blurhashImageData.data[1] + blurhashImageData.data[2]
 		let textColor = firstBlurhashPixelColor > 382 ? "black" : "white"
 
+		if (this.overwriteSettings) {
+			textColor = this.titleTextColorBlack ? "black" : "white"
+		}
+
 		// Get the title
 		let titleParts = this.title.split('\n')
 		let titleFirstLine = titleParts[0]
@@ -97,7 +107,9 @@ export class AppComponent {
 		// Write the title to the canvas
 		let titleFontSize = defaultTitleFontSize
 
-		if (this.titleFontSize == null) {
+		if (this.overwriteSettings) {
+			titleFontSize = this.titleFontSize
+		} else {
 			// Font sizes: 0-15 length -> 118
 			// + 1 length -> -5 pt
 			if (titleFirstLine.length > 15) {
@@ -105,10 +117,8 @@ export class AppComponent {
 			}
 
 			if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
-		} else {
-			titleFontSize = this.titleFontSize
+			this.titleFontSize = titleFontSize
 		}
-		console.log("Title font size: " + titleFontSize)
 		titleFontSize = this.CalculateFontSizeRelativeToHeight(titleFontSize, this.imageHeight)
 
 		this.canvasContext.font = `${titleFontSize}pt Roboto`

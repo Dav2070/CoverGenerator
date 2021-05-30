@@ -29,8 +29,18 @@
 			</div>
 
 			<div class="mt-3">
+				<input name="overwrite-settings" type="checkbox" [(ngModel)]="overwriteSettings">
+				<label class="ml-2" for="overwrite-settings">Overwrite settings</label>
+			</div>
+
+			<div class="mt-3">
 				<label for="font-size">Title font size</label><br>
-				<input name="font-size" type="number" [(ngModel)]="titleFontSize">
+				<input name="font-size" type="number" [(ngModel)]="titleFontSize" [disabled]="!overwriteSettings">
+			</div>
+
+			<div class="mt-3">
+				<input name="text-color-black" type="checkbox" [(ngModel)]="titleTextColorBlack" [disabled]="!overwriteSettings">
+				<label class="ml-2" for="text-color-black">Black text color</label>
 			</div>
 
 			<button
