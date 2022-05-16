@@ -43,7 +43,7 @@ export class AppComponent {
 		let image = new Image()
 		let imageLoadPromiseHolder = new PromiseHolder()
 
-		image.onload = () => imageLoadPromiseHolder.resolve()
+		image.onload = () => imageLoadPromiseHolder.Resolve()
 		image.src = this.imageData
 		await imageLoadPromiseHolder.AwaitResult()
 
