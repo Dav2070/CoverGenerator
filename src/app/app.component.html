@@ -28,7 +28,24 @@
 				<textarea name="title" placeholder="Book title" [(ngModel)]="title" rows="2"></textarea>
 			</div>
 
+			<button
+				class="btn btn-primary mt-3"
+				type="button"
+				ngxFilePicker
+				accept="image/png,image/jpeg"
+				(filePick)="BarcodeFilePicked($event)"
+				*ngIf="printCover">
+				Select barcode image
+			</button>
+
+			<p *ngIf="printCover">{{ barcodeImageName }}</p>
+
 			<div class="mt-3">
+				<input name="print-cover" type="checkbox" [(ngModel)]="printCover">
+				<label class="ml-2" for="print-cover">Print cover</label>
+			</div>
+
+			<div>
 				<input name="overwrite-settings" type="checkbox" [(ngModel)]="overwriteSettings">
 				<label class="ml-2" for="overwrite-settings">Overwrite settings</label>
 			</div>

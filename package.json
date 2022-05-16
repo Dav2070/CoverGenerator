@@ -26,6 +26,7 @@
     "dav-js": "git+https://github.com/dav-apps/dav-js.git#v2.5",
     "ngx-file-helpers": "^5.0.3",
     "rxjs": "~6.6.0",
+    "stackblur-canvas": "^2.5.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.11.3"
   },
