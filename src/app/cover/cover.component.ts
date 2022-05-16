@@ -9,8 +9,7 @@ const defaultTitleFontSize = 118
 
 @Component({
 	selector: 'app-cover',
-	templateUrl: './cover.component.html',
-	styleUrls: ['./cover.component.scss']
+	templateUrl: './cover.component.html'
 })
 export class CoverComponent {
 	@ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>
