@@ -45,9 +45,8 @@ export class PrintCoverComponent {
 		await imageLoadPromiseHolder.AwaitResult()
 
 		let coverWidth = image.width
-		let coverHeight = image.height
-
 		let totalWidthCm = 25.82
+		let totalHeightCm = 20
 		let spineWidthCm = 0.82
 		let edgeWidthCm = 0.5
 		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
@@ -55,13 +54,14 @@ export class PrintCoverComponent {
 		let pixelPerCm = coverWidth / coverWidthCm
 		let spineWidth = spineWidthCm * pixelPerCm
 		let totalWidth = totalWidthCm * pixelPerCm
+		let totalHeight = totalHeightCm * pixelPerCm
 		let edgeWidth = edgeWidthCm * pixelPerCm
 
 		let clippedCoverWidth = coverWidth - edgeWidth
-		let clippedCoverHeight = coverHeight - edgeWidth
+		let clippedHeight = totalHeight - edgeWidth
 
 		this.imageWidth = totalWidth
-		this.imageHeight = coverHeight
+		this.imageHeight = totalHeight
 
 		// Set the correct dimensions of the canvas and draw the image
 		this.canvas.nativeElement.width = this.imageWidth
@@ -73,7 +73,7 @@ export class PrintCoverComponent {
 		StackBlur.image(image, blurCanvas, 100, false)
 
 		blurCanvasContext.fillStyle = "#00000088"
-		blurCanvasContext.fillRect(0, 0, coverWidth, coverHeight)
+		blurCanvasContext.fillRect(0, 0, coverWidth, totalHeight)
 
 		let blurCanvasImage = new Image()
 		let blurCanvasImageLoadPromiseHolder = new PromiseHolder()
@@ -82,12 +82,12 @@ export class PrintCoverComponent {
 		blurCanvasImage.src = blurCanvas.toDataURL()
 		await blurCanvasImageLoadPromiseHolder.AwaitResult()
 
-		this.canvasContext.drawImage(blurCanvasImage, 0, 0, coverWidth, coverHeight)
-		this.canvasContext.drawImage(image, coverWidth + spineWidth, 0, coverWidth, coverHeight)
+		this.canvasContext.drawImage(blurCanvasImage, 0, 0, coverWidth, totalHeight)
+		this.canvasContext.drawImage(image, coverWidth + spineWidth, 0, coverWidth, totalHeight)
 
 		// Draw the spine
 		this.canvasContext.fillStyle = "#394451"
-		this.canvasContext.fillRect(coverWidth, 0, spineWidth, coverHeight)
+		this.canvasContext.fillRect(coverWidth, 0, spineWidth, totalHeight)
 
 		// Load the Standard Ebooks logo
 		let logoImage = new Image()
@@ -102,7 +102,7 @@ export class PrintCoverComponent {
 		let adaptedLogoImageWidth = spineWidth
 		let adaptedLogoImageHeight = logoImageRatio * adaptedLogoImageWidth
 
-		this.canvasContext.drawImage(logoImage, coverWidth, (coverHeight / 2) - (adaptedLogoImageHeight / 2), spineWidth, adaptedLogoImageHeight)
+		this.canvasContext.drawImage(logoImage, coverWidth, (totalHeight / 2) - (adaptedLogoImageHeight / 2), spineWidth, adaptedLogoImageHeight)
 
 		// Draw the barcode image on the back
 		let barcodeImage = new Image()
@@ -116,13 +116,11 @@ export class PrintCoverComponent {
 		let barcodeImageWidth = 3 * pixelPerCm		// 4 cm
 		let barcodeImageHeight = barcodeImageRatio * barcodeImageWidth
 
-		this.canvasContext.drawImage(barcodeImage, edgeWidth + (clippedCoverWidth / 2) - (barcodeImageWidth / 2), clippedCoverHeight * 0.85, barcodeImageWidth, barcodeImageHeight)
+		this.canvasContext.drawImage(barcodeImage, edgeWidth + (clippedCoverWidth / 2) - (barcodeImageWidth / 2), clippedHeight * 0.85, barcodeImageWidth, barcodeImageHeight)
 
 		// Generate the blurhash for the bottom part
-		let bottomPartHeight = Math.ceil((coverHeight * 0.24) + edgeWidth)
-		//let bottomPartHeight = Math.ceil(coverHeight * 0.24)
-		let bottomPartStart = coverHeight - bottomPartHeight
-		//let bottomPartStart = coverHeight - bottomPartHeight
+		let bottomPartHeight = Math.ceil((totalHeight * 0.24) + edgeWidth)
+		let bottomPartStart = totalHeight - bottomPartHeight
 		let imageData = this.canvasContext.getImageData(coverWidth + spineWidth, bottomPartStart, coverWidth, bottomPartHeight)
 
 		let blurhash = encode(imageData.data, imageData.width, imageData.height, 2, 2)
@@ -151,7 +149,7 @@ export class PrintCoverComponent {
 		}
 
 		// Write the author name to the canvas
-		let authorNameFontSize = GetDefaultAuthorNameFontSize(coverHeight)
+		let authorNameFontSize = GetDefaultAuthorNameFontSize(clippedHeight)
 		this.canvasContext.fillStyle = textColor
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.font = `${authorNameFontSize}pt Roboto Light`
@@ -180,7 +178,7 @@ export class PrintCoverComponent {
 			if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
 			this.titleFontSize = titleFontSize
 		}
-		titleFontSize = CalculateFontSizeRelativeToHeight(titleFontSize, coverHeight)
+		titleFontSize = CalculateFontSizeRelativeToHeight(titleFontSize, clippedHeight)
 
 		this.canvasContext.font = `${titleFontSize}pt Roboto`
 
@@ -193,7 +191,7 @@ export class PrintCoverComponent {
 			)
 		} else {
 			// Two lines of text
-			let bottomTitlePartHeight = coverHeight - authorNameYPosition - edgeWidth
+			let bottomTitlePartHeight = clippedHeight - authorNameYPosition
 
 			this.canvasContext.fillText(
 				titleFirstLine,
