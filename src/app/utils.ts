@@ -9,7 +9,7 @@ export function GetDefaultAuthorNameFontSize(height: number): number {
 	return CalculateFontSizeRelativeToHeight(defaultAuthorNameFontSize, height)
 }
 
-export async function GetCoverDimensions(): Promise<{
+export async function GetCoverDimensions(numberOfPages: number): Promise<{
 	rueckenbreite: number,
 	beschnitt: number,
 	ulbreite_o: number,
@@ -29,7 +29,7 @@ export async function GetCoverDimensions(): Promise<{
 				MODE: 'bp_checkcover',
 				einbandart: 'PB',
 				buchformat: '12*19',
-				anzseiten: '342',
+				anzseiten: numberOfPages.toString(),
 				papierfarbe: 'weiss80'
 			})
 		})

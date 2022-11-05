@@ -3,7 +3,11 @@ import { ReadFile } from 'ngx-file-helpers'
 import { decode, encode } from 'blurhash'
 import { BlobToBase64, PromiseHolder } from 'dav-js'
 import * as StackBlur from 'stackblur-canvas'
-import { CalculateFontSizeRelativeToHeight, GetDefaultAuthorNameFontSize } from '../utils'
+import {
+	CalculateFontSizeRelativeToHeight,
+	GetDefaultAuthorNameFontSize,
+	GetCoverDimensions
+} from '../utils'
 import { defaultTitleFontSize } from '../constants'
 
 @Component({
@@ -21,6 +25,7 @@ export class PrintCoverComponent {
 	barcodeImageData: string = null
 	author: string = ""
 	title: string = ""
+	numberOfPages: number = 0
 	overwriteSettings: boolean = false
 	titleFontSize: number = null
 	titleTextColorBlack: boolean = true
@@ -44,11 +49,13 @@ export class PrintCoverComponent {
 		image.src = this.imageData
 		await imageLoadPromiseHolder.AwaitResult()
 
+		let coverDimensions = await GetCoverDimensions(this.numberOfPages)
+
 		let coverWidth = image.width
-		let totalWidthCm = 25.82
-		let totalHeightCm = 20
-		let spineWidthCm = 0.82
-		let edgeWidthCm = 0.5
+		let totalWidthCm = coverDimensions.gbreite_m
+		let totalHeightCm = coverDimensions.hoehe_m
+		let spineWidthCm = coverDimensions.rueckenbreite
+		let edgeWidthCm = coverDimensions.beschnitt
 		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
 
 		let pixelPerCm = coverWidth / coverWidthCm
