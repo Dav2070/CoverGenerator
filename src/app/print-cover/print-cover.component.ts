@@ -106,10 +106,48 @@ export class PrintCoverComponent {
 
 		// Draw the Standard Ebooks logo on the spine
 		let logoImageRatio = logoImage.height / logoImage.width
-		let adaptedLogoImageWidth = spineWidth
+		let adaptedLogoImageWidth = spineWidth * 0.88
 		let adaptedLogoImageHeight = logoImageRatio * adaptedLogoImageWidth
+		const spineOuterDistance = 64
 
-		this.canvasContext.drawImage(logoImage, coverWidth, (totalHeight / 2) - (adaptedLogoImageHeight / 2), spineWidth, adaptedLogoImageHeight)
+		this.canvasContext.drawImage(logoImage, coverWidth + ((spineWidth - adaptedLogoImageWidth) / 2), spineOuterDistance, adaptedLogoImageWidth, adaptedLogoImageHeight)
+		this.canvasContext.save()
+
+		// Draw the author name on the spine
+		const spineAuthorNameFontSize = 58
+		this.canvasContext.fillStyle = "white"
+		this.canvasContext.textAlign = "left"
+		this.canvasContext.textBaseline = "middle"
+		this.canvasContext.font = `${spineAuthorNameFontSize}pt Roboto Light`
+
+		// Position the context on the edge of the spine
+		this.canvasContext.translate(totalWidth / 2, totalHeight - 64)
+
+		this.canvasContext.rotate((Math.PI / 180) * 270)
+		this.canvasContext.fillText(this.author, 0, 0)
+
+		// Calculate the available space between the author name and the logo
+		let outerDistanceTop = adaptedLogoImageHeight + spineOuterDistance
+		let outerDistanceBottom = this.canvasContext.measureText(this.author).width + spineOuterDistance
+
+		// Calculate the center between the author name and logo
+		let spineTitleTextCenter = ((totalHeight - outerDistanceTop - outerDistanceBottom) / 2) + outerDistanceTop
+
+		this.canvasContext.restore()
+		this.canvasContext.save()
+
+		// Draw the title on the spine
+		const spineTitleFontSize = 64
+		this.canvasContext.fillStyle = "white"
+		this.canvasContext.textAlign = "center"
+		this.canvasContext.textBaseline = "middle"
+		this.canvasContext.font = `${spineTitleFontSize}pt Roboto`
+		this.canvasContext.translate(totalWidth / 2, spineTitleTextCenter)
+		this.canvasContext.rotate((Math.PI / 180) * 270)
+		this.canvasContext.fillText(this.title, 0, 0)
+
+		this.canvasContext.restore()
+		this.canvasContext.save()
 
 		// Draw the barcode image on the back
 		let barcodeImage = new Image()
