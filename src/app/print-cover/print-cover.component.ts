@@ -105,16 +105,19 @@ export class PrintCoverComponent {
 		await logoImageLoadPromiseHolder.AwaitResult()
 
 		// Draw the Standard Ebooks logo on the spine
+		const spineOuterDistance = 64
 		let logoImageRatio = logoImage.height / logoImage.width
 		let adaptedLogoImageWidth = spineWidth * 0.88
+		if (adaptedLogoImageWidth > 210) adaptedLogoImageWidth = 210
 		let adaptedLogoImageHeight = logoImageRatio * adaptedLogoImageWidth
-		const spineOuterDistance = 64
 
 		this.canvasContext.drawImage(logoImage, coverWidth + ((spineWidth - adaptedLogoImageWidth) / 2), spineOuterDistance, adaptedLogoImageWidth, adaptedLogoImageHeight)
 		this.canvasContext.save()
 
 		// Draw the author name on the spine
-		const spineAuthorNameFontSize = 58
+		let spineAuthorNameFontSize = spineWidth * 0.29
+		if (spineAuthorNameFontSize > 58) spineAuthorNameFontSize = 58
+
 		this.canvasContext.fillStyle = "white"
 		this.canvasContext.textAlign = "left"
 		this.canvasContext.textBaseline = "middle"
@@ -137,7 +140,9 @@ export class PrintCoverComponent {
 		this.canvasContext.save()
 
 		// Draw the title on the spine
-		const spineTitleFontSize = 64
+		let spineTitleFontSize = spineWidth * 0.32
+		if (spineTitleFontSize > 64) spineTitleFontSize = 64
+
 		this.canvasContext.fillStyle = "white"
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.textBaseline = "middle"
