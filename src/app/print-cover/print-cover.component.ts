@@ -105,7 +105,7 @@ export class PrintCoverComponent {
 		await logoImageLoadPromiseHolder.AwaitResult()
 
 		// Draw the Standard Ebooks logo on the spine
-		const spineOuterDistance = 64
+		const spineOuterDistance = 64 + (0.5 * pixelPerCm)
 		let logoImageRatio = logoImage.height / logoImage.width
 		let adaptedLogoImageWidth = spineWidth * 0.88
 		if (adaptedLogoImageWidth > 210) adaptedLogoImageWidth = 210
@@ -124,7 +124,7 @@ export class PrintCoverComponent {
 		this.canvasContext.font = `${spineAuthorNameFontSize}pt Roboto Light`
 
 		// Position the context on the edge of the spine
-		this.canvasContext.translate(totalWidth / 2, totalHeight - 64)
+		this.canvasContext.translate(totalWidth / 2, totalHeight - spineOuterDistance)
 
 		this.canvasContext.rotate((Math.PI / 180) * 270)
 		this.canvasContext.fillText(this.author, 0, 0)
@@ -155,6 +155,9 @@ export class PrintCoverComponent {
 		this.canvasContext.save()
 
 		// Draw the barcode image on the back
+		let bottomPartHeight = Math.ceil((totalHeight * 0.24) + edgeWidth)
+		let bottomPartStart = totalHeight - bottomPartHeight
+
 		let barcodeImage = new Image()
 		let barcodeImageLoadPromiseHolder = new PromiseHolder()
 
@@ -163,14 +166,19 @@ export class PrintCoverComponent {
 		await barcodeImageLoadPromiseHolder.AwaitResult()
 
 		let barcodeImageRatio = barcodeImage.height / barcodeImage.width
-		let barcodeImageWidth = 3 * pixelPerCm		// 4 cm
+		let barcodeImageWidth = 2.6 * pixelPerCm
 		let barcodeImageHeight = barcodeImageRatio * barcodeImageWidth
 
-		this.canvasContext.drawImage(barcodeImage, edgeWidth + (clippedCoverWidth / 2) - (barcodeImageWidth / 2), clippedHeight * 0.85, barcodeImageWidth, barcodeImageHeight)
+		// Place the barcode image on the center of the bottom part
+		this.canvasContext.drawImage(
+			barcodeImage,
+			edgeWidth + (clippedCoverWidth / 2) - (barcodeImageWidth / 2),
+			bottomPartStart + (bottomPartHeight / 2) - (barcodeImageHeight / 2),
+			barcodeImageWidth,
+			barcodeImageHeight
+		)
 
 		// Generate the blurhash for the bottom part
-		let bottomPartHeight = Math.ceil((totalHeight * 0.24) + edgeWidth)
-		let bottomPartStart = totalHeight - bottomPartHeight
 		let imageData = this.canvasContext.getImageData(coverWidth + spineWidth, bottomPartStart, coverWidth, bottomPartHeight)
 
 		let blurhash = encode(imageData.data, imageData.width, imageData.height, 2, 2)
