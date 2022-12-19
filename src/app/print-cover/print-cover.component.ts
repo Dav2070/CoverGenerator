@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef } from '@angular/core'
 import { ReadFile } from 'ngx-file-helpers'
 import { decode, encode } from 'blurhash'
 import { BlobToBase64, PromiseHolder } from 'dav-js'
+import { DropdownOption, DropdownOptionType } from 'dav-ui-components'
 import * as StackBlur from 'stackblur-canvas'
 import {
 	CalculateFontSizeRelativeToHeight,
@@ -20,7 +21,20 @@ export class PrintCoverComponent {
 	imageName: string = ""
 	imageData: string = null
 	imageWidth: number = 500
-	imageHeight: number = 500
+   imageHeight: number = 500
+   providerDropdownOptions: DropdownOption[] = [
+      {
+         key: "lulu",
+         value: "Lulu",
+         type: DropdownOptionType.option
+      },
+      {
+         key: "bod",
+         value: "BoD",
+         type: DropdownOptionType.option
+      }
+   ]
+   providerDropdownSelectedKey = this.providerDropdownOptions[0].key
 	barcodeImageName: string = ""
 	barcodeImageData: string = null
 	author: string = ""
@@ -36,7 +50,7 @@ export class PrintCoverComponent {
 		this.canvasContext = this.canvas.nativeElement.getContext('2d')
 	}
 
-	async Start() {
+   async Start() {
 		if (this.imageData == null || this.barcodeImageData == null) return
 
 		// Clear the canvas
@@ -47,22 +61,34 @@ export class PrintCoverComponent {
 
 		image.onload = () => imageLoadPromiseHolder.Resolve()
 		image.src = this.imageData
-		await imageLoadPromiseHolder.AwaitResult()
+      await imageLoadPromiseHolder.AwaitResult()
+      
+      let coverWidth = image.width
+      let totalWidthCm = 0
+      let totalHeightCm = 0
+      let spineWidthCm = 0
+      let edgeWidthCm = 0
 
-		let coverDimensions = await GetCoverDimensions(this.numberOfPages)
+      if (this.providerDropdownSelectedKey == "bod") {
+         let coverDimensions = await GetCoverDimensions(this.numberOfPages)
 
-		let coverWidth = image.width
-		let totalWidthCm = coverDimensions.gbreite_m
-		let totalHeightCm = coverDimensions.hoehe_m
-		let spineWidthCm = coverDimensions.rueckenbreite
-		let edgeWidthCm = coverDimensions.beschnitt
-		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
+         totalWidthCm = coverDimensions.gbreite_m
+         totalHeightCm = coverDimensions.hoehe_m
+         spineWidthCm = coverDimensions.rueckenbreite
+         edgeWidthCm = coverDimensions.beschnitt
+      } else {
+         totalWidthCm = 30.158
+         totalHeightCm = 22.225
+         spineWidthCm = ((this.numberOfPages / 444) + 0.06) * 2.54
+         edgeWidthCm = 0.3175
+      }
 
-		let pixelPerCm = coverWidth / coverWidthCm
-		let spineWidth = spineWidthCm * pixelPerCm
-		let totalWidth = totalWidthCm * pixelPerCm
-		let totalHeight = totalHeightCm * pixelPerCm
-		let edgeWidth = edgeWidthCm * pixelPerCm
+      let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
+      let pixelPerCm = coverWidth / coverWidthCm
+      let spineWidth = spineWidthCm * pixelPerCm
+      let totalWidth = totalWidthCm * pixelPerCm
+      let totalHeight = totalHeightCm * pixelPerCm
+      let edgeWidth = edgeWidthCm * pixelPerCm
 
 		let clippedCoverWidth = coverWidth - edgeWidth
 		let clippedHeight = totalHeight - edgeWidth
@@ -266,7 +292,11 @@ export class PrintCoverComponent {
 
 		this.imageDataBase64 = this.canvas.nativeElement.toDataURL("image/jpeg")
 		this.downloadTitle = "printCover.jpg"
-	}
+   }
+   
+   ProviderDropdownSelectionChange(event: CustomEvent) {
+      this.providerDropdownSelectedKey = event.detail.key
+   }
 
 	async ImageFilePicked(file: ReadFile) {
 		// Read the selected image file
