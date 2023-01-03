@@ -1,8 +1,16 @@
 <div class="m-3">
-   <dav-button
-      type="accent"
-      ngxFilePicker
-		accept="application/epub+zip">
-      Select file
-   </dav-button>
+   <dav-textfield
+      placeholder="Epub file URL"
+      label="URL"
+      [value]="url"
+      (change)="url = $event.detail.value">
+   </dav-textfield>
+
+   <div style="display: flex; align-items: center; margin-top: 12px">
+      <dav-button type="accent" [disabled]="isLoading" (click)="Start()">
+         Convert
+      </dav-button>
+
+      <dav-progress-ring style="width: 16px; height: 16px; margin-left: 12px" *ngIf="isLoading"></dav-progress-ring>
+   </div>
 </div>
