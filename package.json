@@ -26,6 +26,7 @@
 		"bootstrap": "^4.6.1",
 		"dav-js": "git+https://github.com/dav-apps/dav-js.git#v2.6.2",
 		"dav-ui-components": "git+https://github.com/dav-apps/dav-ui-components.git#v0.9",
+		"jszip": "^3.10.1",
 		"ngx-file-helpers": "^8.1.1",
 		"rxjs": "~6.6.0",
 		"stackblur-canvas": "^2.5.0",

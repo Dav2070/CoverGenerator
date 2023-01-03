@@ -1,5 +1,6 @@
 import { Component } from '@angular/core'
 import axios from 'axios'
+import * as JSZip from 'jszip'
 import { PromiseHolder } from 'dav-js'
 import { convertioApiKey } from '../../environments/secrets'
 
@@ -44,39 +45,14 @@ export class EpubToDocxComponent {
 
 		// Download the converted file
 		let outputFileBlob = await this.DownloadFile(outputFileUrl)
-	}
+		let zip = await JSZip.loadAsync(outputFileBlob)
+		let parser = new DOMParser()
+		let serializer = new XMLSerializer()
 
-	async DownloadFile(url: string): Promise<Blob> {
-		try {
-			let response = await axios({
-				method: 'get',
-				url,
-				responseType: 'blob'
-			})
+		await this.AdaptPageSize(zip, parser, serializer)
 
-			return new Blob([response.data], { type: 'application/zip' })
-		} catch (error) {
-			console.log("Error in downloading the converted file")
-			console.error(error)
-		}
-
-		return null
-	}
-
-	async GetConversionStatus(conversionId: string): Promise<string> {
-		try {
-			let response = await axios({
-				method: 'get',
-				url: `https://api.convertio.co/convert/${conversionId}/status`
-			})
-
-			return response.data
-		} catch (error) {
-			console.log("Error in getting conversion status")
-			console.error(error)
-		}
-
-		return null
+		await this.SendDocxFile(zip)
+		this.isLoading = false
 	}
 
 	async CreateConversion(url: string): Promise<string> {
@@ -102,5 +78,60 @@ export class EpubToDocxComponent {
 		}
 
 		return null
+	}
+
+	async GetConversionStatus(conversionId: string): Promise<string> {
+		try {
+			let response = await axios({
+				method: 'get',
+				url: `https://api.convertio.co/convert/${conversionId}/status`
+			})
+
+			return response.data
+		} catch (error) {
+			console.log("Error in getting conversion status")
+			console.error(error)
+		}
+
+		return null
+	}
+
+	async DownloadFile(url: string): Promise<Blob> {
+		try {
+			let response = await axios({
+				method: 'get',
+				url,
+				responseType: 'blob'
+			})
+
+			return new Blob([response.data], { type: 'application/zip' })
+		} catch (error) {
+			console.log("Error in downloading the converted file")
+			console.error(error)
+		}
+
+		return null
+	}
+
+	async AdaptPageSize(zip: JSZip, parser: DOMParser, serializer: XMLSerializer) {
+		let content = await zip.file("word/document.xml").async("string")
+		let doc = parser.parseFromString(content, "text/xml")
+
+		let documentTag = doc.getElementsByTagName("w:document")[0]
+		let bodyTag = documentTag.getElementsByTagName("w:body")[0]
+		let sectionTag = bodyTag.getElementsByTagName("w:sectPr")[0]
+		let pageSizeTag = sectionTag.getElementsByTagName("w:pgSz")[0]
+		pageSizeTag.setAttribute("w:w", "7938")
+		pageSizeTag.setAttribute("w:h", "12247")
+
+		zip.file("word/document.xml", serializer.serializeToString(doc))
+	}
+
+	async SendDocxFile(zip: JSZip) {
+		let docxBlob = await zip.generateAsync({ type: "blob" })
+		let anchor = document.createElement("a")
+		anchor.href = window.URL.createObjectURL(docxBlob)
+		anchor.download = "document.docx"
+		anchor.click()
 	}
 }
