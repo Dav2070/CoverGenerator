@@ -171,6 +171,26 @@ export class EpubToDocxComponent {
 		titlePageExtendElement.setAttribute("cx", "5040000")
 		titlePageExtendElement.setAttribute("cy", Math.round(newHeight).toString())
 
+		// Build the page break element
+		let pageBreakPElement = doc.createElement("w:p")
+		
+		let pageBreakPrElement = doc.createElement("w:pPr")
+		pageBreakPrElement.appendChild(doc.createElement("w:keepNext"))
+		pageBreakPrElement.appendChild(doc.createElement("w:keepLines"))
+		pageBreakPrElement.appendChild(doc.createElement("w:pageBreakBefore"))
+		pageBreakPrElement.appendChild(doc.createElement("w:spacing"))
+
+		let pageBreakRElement = doc.createElement("w:r")
+		pageBreakRElement.appendChild(doc.createElement("w:lastRenderedPageBreak"))
+		pageBreakRElement.appendChild(doc.createElement("w:br"))
+
+		pageBreakPElement.appendChild(pageBreakPrElement)
+		pageBreakPElement.appendChild(pageBreakRElement)
+
+		// Add a page break after the title page and after the imprint
+		bodyTag.getElementsByTagName("w:p")[1].after(pageBreakPElement.cloneNode(true))
+		bodyTag.getElementsByTagName("w:p")[7].after(pageBreakPElement.cloneNode(true))
+
 		zip.file(documentFileName, serializer.serializeToString(doc))
 	}
 
