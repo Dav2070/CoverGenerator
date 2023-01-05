@@ -4,6 +4,8 @@ import * as JSZip from 'jszip'
 import { PromiseHolder } from 'dav-js'
 import { convertioApiKey } from '../../environments/secrets'
 
+const documentFileName = "word/document.xml"
+
 @Component({
 	selector: 'app-epub-to-docx',
 	templateUrl: './epub-to-docx.component.html'
@@ -49,7 +51,7 @@ export class EpubToDocxComponent {
 		let parser = new DOMParser()
 		let serializer = new XMLSerializer()
 
-		await this.AdaptPageSize(zip, parser, serializer)
+		await this.AdaptDocument(zip, parser, serializer)
 
 		await this.SendDocxFile(zip)
 		this.isLoading = false
@@ -113,18 +115,47 @@ export class EpubToDocxComponent {
 		return null
 	}
 
-	async AdaptPageSize(zip: JSZip, parser: DOMParser, serializer: XMLSerializer) {
-		let content = await zip.file("word/document.xml").async("string")
+	async AdaptDocument(zip: JSZip, parser: DOMParser, serializer: XMLSerializer) {
+		let content = await zip.file(documentFileName).async("string")
 		let doc = parser.parseFromString(content, "text/xml")
 
 		let documentTag = doc.getElementsByTagName("w:document")[0]
 		let bodyTag = documentTag.getElementsByTagName("w:body")[0]
 		let sectionTag = bodyTag.getElementsByTagName("w:sectPr")[0]
 		let pageSizeTag = sectionTag.getElementsByTagName("w:pgSz")[0]
+		let pageMarginTag = sectionTag.getElementsByTagName("w:pgMar")[0]
+
+		// Set the page size
 		pageSizeTag.setAttribute("w:w", "7938")
 		pageSizeTag.setAttribute("w:h", "12247")
+		pageSizeTag.setAttribute("w:code", "6")
 
-		zip.file("word/document.xml", serializer.serializeToString(doc))
+		// Set the page margins
+		pageMarginTag.setAttribute("w:top", "964")
+		pageMarginTag.setAttribute("w:right", "1077")
+		pageMarginTag.setAttribute("w:bottom", "964")
+		pageMarginTag.setAttribute("w:left", "1077")
+
+		// Remove the cover page
+		let pElements = bodyTag.getElementsByTagName("w:p")
+		bodyTag.removeChild(pElements[0])
+
+		// Remove the table of contents
+		let elementsToRemove = []
+
+		for (let i = 0; i < pElements.length; i++) {
+			let pElement = pElements[i]
+
+			if (pElement.getElementsByTagName("w:bookmarkStart").length == 0) {
+				elementsToRemove.push(pElement)
+			} else {
+				break
+			}
+		}
+
+		elementsToRemove.forEach(el => bodyTag.removeChild(el))
+
+		zip.file(documentFileName, serializer.serializeToString(doc))
 	}
 
 	async SendDocxFile(zip: JSZip) {
