@@ -155,6 +155,22 @@ export class EpubToDocxComponent {
 
 		elementsToRemove.forEach(el => bodyTag.removeChild(el))
 
+		// Adapt the size of the title page image
+		let titlePagePElement = bodyTag.getElementsByTagName("w:p")[1]
+		let titlePageRElement = titlePagePElement.getElementsByTagName("w:r")[0]
+		let titlePageDrawingElement = titlePageRElement.getElementsByTagName("w:drawing")[0]
+		let titlePageAnchorElement = titlePageDrawingElement.getElementsByTagName("wp:anchor")[0]
+		let titlePageExtendElement = titlePageAnchorElement.getElementsByTagName("wp:extent")[0]
+
+		let originalWidth = +titlePageExtendElement.getAttribute("cx")
+		let originalHeight = +titlePageExtendElement.getAttribute("cy")
+
+		// Calculate the new height of the title page image
+		let newHeight = (originalHeight / originalWidth) * 5040000
+
+		titlePageExtendElement.setAttribute("cx", "5040000")
+		titlePageExtendElement.setAttribute("cy", Math.round(newHeight).toString())
+
 		zip.file(documentFileName, serializer.serializeToString(doc))
 	}
 
