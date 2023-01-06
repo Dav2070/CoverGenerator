@@ -5,6 +5,8 @@ import { PromiseHolder } from 'dav-js'
 import { convertioApiKey } from '../../environments/secrets'
 
 const documentFileName = "word/document.xml"
+const settingsFileName = "word/settings.xml"
+const documentRelsFileName = "word/_rels/document.xml.rels"
 
 @Component({
 	selector: 'app-epub-to-docx',
@@ -52,6 +54,7 @@ export class EpubToDocxComponent {
 		let serializer = new XMLSerializer()
 
 		await this.AdaptDocument(zip, parser, serializer)
+		await this.AdaptSettings(zip, parser, serializer)
 
 		await this.SendDocxFile(zip)
 		this.isLoading = false
@@ -192,6 +195,53 @@ export class EpubToDocxComponent {
 		bodyTag.getElementsByTagName("w:p")[7].after(pageBreakPElement.cloneNode(true))
 
 		zip.file(documentFileName, serializer.serializeToString(doc))
+	}
+
+	async AdaptSettings(zip: JSZip, parser: DOMParser, serializer: XMLSerializer) {
+		let settingsFile = zip.file(settingsFileName)
+		let content = ""
+
+		if (settingsFile == null) {
+			// Create the file
+			content = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+				<w:settings xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+					xmlns:o="urn:schemas-microsoft-com:office:office"
+					xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+					xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+					xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w10="urn:schemas-microsoft-com:office:word"
+					xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+					xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+					xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"
+					xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex"
+					xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid"
+					xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml"
+					xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash"
+					xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex"
+					xmlns:sl="http://schemas.openxmlformats.org/schemaLibrary/2006/main"
+					mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh"></w:settings>`
+			
+			// Add the settings file to the document rels file
+			let documentRelsFileContent = await zip.file(documentRelsFileName).async("text")
+			let documentRelsDoc = parser.parseFromString(documentRelsFileContent, "text/xml")
+			let relationshipsElement = documentRelsDoc.getElementsByTagName("Relationships")[0]
+
+			let settingsFileRelationshipElement = documentRelsDoc.createElement("Relationship")
+			settingsFileRelationshipElement.setAttribute("Id", "rId17")
+			settingsFileRelationshipElement.setAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings")
+			settingsFileRelationshipElement.setAttribute("Target", "settings.xml")
+			relationshipsElement.appendChild(settingsFileRelationshipElement)
+
+			zip.file(documentRelsFileName, serializer.serializeToString(documentRelsDoc).replace('xmlns="" Id="rId17"', 'Id="rId17"'))
+		} else {
+			content = await settingsFile.async("string")
+		}
+
+		let doc = parser.parseFromString(content, "text/xml")
+		let settingsElement = doc.getElementsByTagName("w:settings")[0]
+		settingsElement.appendChild(doc.createElement("w:autoHyphenation"))
+		settingsElement.appendChild(doc.createElement("w:mirrorMargins"))
+
+		zip.file(settingsFileName, serializer.serializeToString(doc))
 	}
 
 	async SendDocxFile(zip: JSZip) {
