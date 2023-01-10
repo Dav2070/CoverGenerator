@@ -194,6 +194,54 @@ export class EpubToDocxComponent {
 		bodyTag.getElementsByTagName("w:p")[1].after(pageBreakPElement.cloneNode(true))
 		bodyTag.getElementsByTagName("w:p")[7].after(pageBreakPElement.cloneNode(true))
 
+		// Remove all hyperlinks
+		pElements = bodyTag.getElementsByTagName("w:p")
+		let removedHyperlinkElements: Element[] = []
+
+		for (let i = 0; i < pElements.length; i++) {
+			let pElement = pElements[i]
+			let hyperlinkElements = pElement.getElementsByTagName("w:hyperlink")
+
+			for (let j = 0; j < hyperlinkElements.length; j++) {
+				let hyperlinkElement = hyperlinkElements[j]
+
+				// Get all children of the hyperlink
+				let hyperlinkChildElements = hyperlinkElement.children
+
+				for (let k = 0; k < hyperlinkChildElements.length; k++) {
+					let hyperlinkChildElement = hyperlinkChildElements[k]
+
+					if (hyperlinkChildElement.tagName == "w:r") {
+						let rPropertiesElements = hyperlinkChildElement.getElementsByTagName("w:rPr")
+
+						if (rPropertiesElements.length > 0) {
+							let rPropertiesElement = rPropertiesElements[0]
+
+							let colorElement = doc.createElement("w:color")
+							colorElement.setAttribute("w:val", "auto")
+
+							let uElement = doc.createElement("w:u")
+							uElement.setAttribute("w:val", "none")
+
+							rPropertiesElement.appendChild(colorElement)
+							rPropertiesElement.appendChild(uElement)
+						}
+					}
+
+					hyperlinkElement.insertAdjacentElement("beforebegin", hyperlinkChildElement)
+				}
+
+				removedHyperlinkElements.push(hyperlinkElement)
+			}
+
+			// Remove all hyperlinks
+			for (let hyperlinkElement of removedHyperlinkElements) {
+				pElement.removeChild(hyperlinkElement)
+			}
+
+			removedHyperlinkElements = []
+		}
+
 		zip.file(documentFileName, serializer.serializeToString(doc))
 	}
 
@@ -219,7 +267,7 @@ export class EpubToDocxComponent {
 					xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex"
 					xmlns:sl="http://schemas.openxmlformats.org/schemaLibrary/2006/main"
 					mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh"></w:settings>`
-			
+
 			// Add the settings file to the document rels file
 			let documentRelsFileContent = await zip.file(documentRelsFileName).async("text")
 			let documentRelsDoc = parser.parseFromString(documentRelsFileContent, "text/xml")
