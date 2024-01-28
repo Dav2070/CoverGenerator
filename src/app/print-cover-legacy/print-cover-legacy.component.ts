@@ -12,10 +12,10 @@ import {
 import { defaultTitleFontSize } from "../constants"
 
 @Component({
-	selector: "app-print-cover",
-	templateUrl: "./print-cover.component.html"
+	selector: "app-print-cover-old",
+	templateUrl: "./print-cover-legacy.component.html"
 })
-export class PrintCoverComponent {
+export class PrintCoverLegacyComponent {
 	@ViewChild("canvas", { static: true }) canvas: ElementRef<HTMLCanvasElement>
 	canvasContext: CanvasRenderingContext2D
 	imageName: string = ""

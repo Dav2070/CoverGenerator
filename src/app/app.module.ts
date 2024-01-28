@@ -1,25 +1,21 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
-import { BrowserModule } from '@angular/platform-browser'
-import { FormsModule } from '@angular/forms'
-import { RouterModule, Routes } from '@angular/router'
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
-import { NgxFileHelpersModule } from 'ngx-file-helpers'
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core"
+import { BrowserModule } from "@angular/platform-browser"
+import { FormsModule } from "@angular/forms"
+import { RouterModule, Routes } from "@angular/router"
+import { NgbModule } from "@ng-bootstrap/ng-bootstrap"
+import { NgxFileHelpersModule } from "ngx-file-helpers"
 
-import { AppComponent } from './app.component'
-import { CoverComponent } from './cover/cover.component';
-import { PrintCoverComponent } from './print-cover/print-cover.component'
+import { AppComponent } from "./app.component"
+import { CoverComponent } from "./cover/cover.component"
+import { PrintCoverLegacyComponent } from "./print-cover-legacy/print-cover-legacy.component"
 
 const routes: Routes = [
 	{ path: "", component: CoverComponent },
-	{ path: "print", component: PrintCoverComponent }
+	{ path: "print-cover-legacy", component: PrintCoverLegacyComponent }
 ]
 
 @NgModule({
-	declarations: [
-		AppComponent,
-		CoverComponent,
-		PrintCoverComponent
-	],
+	declarations: [AppComponent, CoverComponent, PrintCoverLegacyComponent],
 	imports: [
 		BrowserModule,
 		FormsModule,
@@ -28,7 +24,7 @@ const routes: Routes = [
 		NgxFileHelpersModule
 	],
 	providers: [],
-   bootstrap: [AppComponent],
-   schemas: [CUSTOM_ELEMENTS_SCHEMA]
+	bootstrap: [AppComponent],
+	schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class AppModule { }
+export class AppModule {}
