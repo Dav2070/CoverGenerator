@@ -7,15 +7,22 @@ import { NgxFileHelpersModule } from "ngx-file-helpers"
 
 import { AppComponent } from "./app.component"
 import { CoverComponent } from "./cover/cover.component"
+import { PrintCoverComponent } from "./print-cover/print-cover.component"
 import { PrintCoverLegacyComponent } from "./print-cover-legacy/print-cover-legacy.component"
 
 const routes: Routes = [
 	{ path: "", component: CoverComponent },
+	{ path: "print-cover", component: PrintCoverComponent },
 	{ path: "print-cover-legacy", component: PrintCoverLegacyComponent }
 ]
 
 @NgModule({
-	declarations: [AppComponent, CoverComponent, PrintCoverLegacyComponent],
+	declarations: [
+		AppComponent,
+		CoverComponent,
+		PrintCoverComponent,
+		PrintCoverLegacyComponent
+	],
 	imports: [
 		BrowserModule,
 		FormsModule,

@@ -12,7 +12,7 @@ import {
 import { defaultTitleFontSize } from "../constants"
 
 @Component({
-	selector: "app-print-cover-old",
+	selector: "app-print-cover-legacy",
 	templateUrl: "./print-cover-legacy.component.html"
 })
 export class PrintCoverLegacyComponent {
