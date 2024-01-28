@@ -10,8 +10,10 @@ import * as StackBlur from "stackblur-canvas"
 export class PrintCoverComponent {
 	@ViewChild("canvas", { static: true }) canvas: ElementRef<HTMLCanvasElement>
 	canvasContext: CanvasRenderingContext2D
-	imageName: string = ""
-	imageData: string = null
+	backgroundImageName: string = ""
+	backgroundImageData: string = null
+	coverImageName: string = ""
+	coverImageData: string = null
 	imageWidth: number = 500
 	imageHeight: number = 500
 	author: string = ""
@@ -25,30 +27,39 @@ export class PrintCoverComponent {
 	}
 
 	async Start() {
-		if (this.imageData == null) return
+		if (this.backgroundImageData == null || this.coverImageData == null) {
+			return
+		}
 
 		// Clear the canvas
 		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
 
-		let image = new Image()
-		let imageLoadPromiseHolder = new PromiseHolder()
+		// Load the background image
+		let backgroundImage = new Image()
+		let backgroundImageLoadPromiseHolder = new PromiseHolder()
 
-		image.onload = () => imageLoadPromiseHolder.Resolve()
-		image.src = this.imageData
-		await imageLoadPromiseHolder.AwaitResult()
+		backgroundImage.onload = () => backgroundImageLoadPromiseHolder.Resolve()
+		backgroundImage.src = this.backgroundImageData
+		await backgroundImageLoadPromiseHolder.AwaitResult()
 
-		let coverWidth = image.width
+		// Load the cover image
+		let coverImage = new Image()
+		let coverImageLoadPromiseHolder = new PromiseHolder()
+
+		coverImage.onload = () => coverImageLoadPromiseHolder.Resolve()
+		coverImage.src = this.coverImageData
+		await coverImageLoadPromiseHolder.AwaitResult()
+
+		let coverWidth = backgroundImage.width
 		let totalWidthCm = 30.158
 		let totalHeightCm = 22.225
 		let spineWidthCm = (this.numberOfPages / 444 + 0.06) * 2.54
-		let edgeWidthCm = 0.3175
 
 		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
 		let pixelPerCm = coverWidth / coverWidthCm
 		let spineWidth = spineWidthCm * pixelPerCm
 		let totalWidth = totalWidthCm * pixelPerCm
 		let totalHeight = totalHeightCm * pixelPerCm
-		let edgeWidth = edgeWidthCm * pixelPerCm
 
 		this.imageWidth = totalWidth
 		this.imageHeight = totalHeight
@@ -60,7 +71,7 @@ export class PrintCoverComponent {
 		// Draw the images
 		let blurCanvas = document.createElement("canvas") as HTMLCanvasElement
 		let blurCanvasContext = blurCanvas.getContext("2d")
-		StackBlur.image(image, blurCanvas, 100, false)
+		StackBlur.image(backgroundImage, blurCanvas, 100, false)
 
 		blurCanvasContext.fillStyle = "#00000088"
 		blurCanvasContext.fillRect(0, 0, coverWidth, totalHeight)
@@ -80,7 +91,7 @@ export class PrintCoverComponent {
 			totalHeight
 		)
 		this.canvasContext.drawImage(
-			image,
+			coverImage,
 			coverWidth + spineWidth,
 			0,
 			coverWidth,
@@ -88,7 +99,7 @@ export class PrintCoverComponent {
 		)
 
 		// Draw the spine
-		this.canvasContext.fillStyle = "#394451"
+		this.canvasContext.fillStyle = "#222"
 		this.canvasContext.fillRect(coverWidth, 0, spineWidth, totalHeight)
 
 		// Load the Standard Ebooks logo
@@ -122,7 +133,7 @@ export class PrintCoverComponent {
 		this.canvasContext.fillStyle = "white"
 		this.canvasContext.textAlign = "left"
 		this.canvasContext.textBaseline = "middle"
-		this.canvasContext.font = `${spineAuthorNameFontSize}pt Roboto Light`
+		this.canvasContext.font = `${spineAuthorNameFontSize}pt League Spartan`
 
 		// Position the context on the edge of the spine
 		this.canvasContext.translate(
@@ -153,7 +164,7 @@ export class PrintCoverComponent {
 		this.canvasContext.fillStyle = "white"
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.textBaseline = "middle"
-		this.canvasContext.font = `${spineTitleFontSize}pt Roboto`
+		this.canvasContext.font = `${spineTitleFontSize}pt League Spartan`
 		this.canvasContext.translate(totalWidth / 2, spineTitleTextCenter)
 		this.canvasContext.rotate((Math.PI / 180) * 270)
 		this.canvasContext.fillText(this.title, 0, 0)
@@ -165,10 +176,17 @@ export class PrintCoverComponent {
 		this.downloadTitle = "printCover.jpg"
 	}
 
-	async ImageFilePicked(file: ReadFile) {
+	async backgroundImageFilePicked(file: ReadFile) {
 		// Read the selected image file
-		this.imageName = file.name
+		this.backgroundImageName = file.name
 		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
-		this.imageData = await BlobToBase64(imageBlob)
+		this.backgroundImageData = await BlobToBase64(imageBlob)
+	}
+
+	async coverImageFilePicked(file: ReadFile) {
+		// Read the selected image file
+		this.coverImageName = file.name
+		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
+		this.coverImageData = await BlobToBase64(imageBlob)
 	}
 }

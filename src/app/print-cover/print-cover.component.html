@@ -15,12 +15,24 @@
 				type="button"
 				ngxFilePicker
 				accept="image/png,image/jpeg"
-				(filePick)="ImageFilePicked($event)"
+				(filePick)="backgroundImageFilePicked($event)"
 			>
-				Select image
+				Select background image
 			</button>
 
-			<p>{{ imageName }}</p>
+			<p>{{ backgroundImageName }}</p>
+
+			<button
+				class="btn btn-primary mt-3"
+				type="button"
+				ngxFilePicker
+				accept="image/png,image/jpeg"
+				(filePick)="coverImageFilePicked($event)"
+			>
+				Select cover image
+			</button>
+
+			<p>{{ coverImageName }}</p>
 
 			<div class="mt-3">
 				<label for="author">Author</label><br />
