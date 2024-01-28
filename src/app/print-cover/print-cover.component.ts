@@ -204,29 +204,31 @@ export class PrintCoverComponent {
 		this.canvasContext.restore()
 		this.canvasContext.save()
 
-		// Draw the barcode image on the back
 		let bottomPartHeight = Math.ceil(totalHeight * 0.24 + edgeWidth)
 		let bottomPartStart = totalHeight - bottomPartHeight
 
-		let barcodeImage = new Image()
-		let barcodeImageLoadPromiseHolder = new PromiseHolder()
+		if (this.barcodeImageData != null) {
+			// Draw the barcode image on the back
+			let barcodeImage = new Image()
+			let barcodeImageLoadPromiseHolder = new PromiseHolder()
 
-		barcodeImage.onload = () => barcodeImageLoadPromiseHolder.Resolve()
-		barcodeImage.src = this.barcodeImageData
-		await barcodeImageLoadPromiseHolder.AwaitResult()
+			barcodeImage.onload = () => barcodeImageLoadPromiseHolder.Resolve()
+			barcodeImage.src = this.barcodeImageData
+			await barcodeImageLoadPromiseHolder.AwaitResult()
 
-		let barcodeImageRatio = barcodeImage.height / barcodeImage.width
-		let barcodeImageWidth = 2.6 * pixelPerCm
-		let barcodeImageHeight = barcodeImageRatio * barcodeImageWidth
+			let barcodeImageRatio = barcodeImage.height / barcodeImage.width
+			let barcodeImageWidth = 2.6 * pixelPerCm
+			let barcodeImageHeight = barcodeImageRatio * barcodeImageWidth
 
-		// Place the barcode image on the center of the bottom part
-		this.canvasContext.drawImage(
-			barcodeImage,
-			edgeWidth + clippedCoverWidth / 2 - barcodeImageWidth / 2,
-			bottomPartStart + bottomPartHeight / 2 - barcodeImageHeight / 2,
-			barcodeImageWidth,
-			barcodeImageHeight
-		)
+			// Place the barcode image on the center of the bottom part
+			this.canvasContext.drawImage(
+				barcodeImage,
+				edgeWidth + clippedCoverWidth / 2 - barcodeImageWidth / 2,
+				bottomPartStart + bottomPartHeight / 2 - barcodeImageHeight / 2,
+				barcodeImageWidth,
+				barcodeImageHeight
+			)
+		}
 
 		// Generate the blurhash for the bottom part
 		let imageData = this.canvasContext.getImageData(
