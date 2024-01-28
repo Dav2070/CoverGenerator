@@ -1,40 +1,40 @@
-import { Component, ViewChild, ElementRef } from '@angular/core'
-import { ReadFile } from 'ngx-file-helpers'
-import { decode, encode } from 'blurhash'
-import { BlobToBase64, PromiseHolder } from 'dav-js'
-import { DropdownOption, DropdownOptionType } from 'dav-ui-components'
-import * as StackBlur from 'stackblur-canvas'
+import { Component, ViewChild, ElementRef } from "@angular/core"
+import { ReadFile } from "ngx-file-helpers"
+import { decode, encode } from "blurhash"
+import { BlobToBase64, PromiseHolder } from "dav-js"
+import { DropdownOption, DropdownOptionType } from "dav-ui-components"
+import * as StackBlur from "stackblur-canvas"
 import {
 	CalculateFontSizeRelativeToHeight,
 	GetDefaultAuthorNameFontSize,
 	GetCoverDimensions
-} from '../utils'
-import { defaultTitleFontSize } from '../constants'
+} from "../utils"
+import { defaultTitleFontSize } from "../constants"
 
 @Component({
-	selector: 'app-print-cover',
-	templateUrl: './print-cover.component.html'
+	selector: "app-print-cover",
+	templateUrl: "./print-cover.component.html"
 })
 export class PrintCoverComponent {
-	@ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>
+	@ViewChild("canvas", { static: true }) canvas: ElementRef<HTMLCanvasElement>
 	canvasContext: CanvasRenderingContext2D
 	imageName: string = ""
 	imageData: string = null
 	imageWidth: number = 500
-   imageHeight: number = 500
-   providerDropdownOptions: DropdownOption[] = [
-      {
-         key: "lulu",
-         value: "Lulu",
-         type: DropdownOptionType.option
-      },
-      {
-         key: "bod",
-         value: "BoD",
-         type: DropdownOptionType.option
-      }
-   ]
-   providerDropdownSelectedKey = this.providerDropdownOptions[0].key
+	imageHeight: number = 500
+	providerDropdownOptions: DropdownOption[] = [
+		{
+			key: "lulu",
+			value: "Lulu",
+			type: DropdownOptionType.option
+		},
+		{
+			key: "bod",
+			value: "BoD",
+			type: DropdownOptionType.option
+		}
+	]
+	providerDropdownSelectedKey = this.providerDropdownOptions[0].key
 	barcodeImageName: string = ""
 	barcodeImageData: string = null
 	author: string = ""
@@ -47,11 +47,11 @@ export class PrintCoverComponent {
 	downloadTitle: string = ""
 
 	ngOnInit() {
-		this.canvasContext = this.canvas.nativeElement.getContext('2d')
+		this.canvasContext = this.canvas.nativeElement.getContext("2d")
 	}
 
-   async Start() {
-		if (this.imageData == null || this.barcodeImageData == null) return
+	async Start() {
+		if (this.imageData == null) return
 
 		// Clear the canvas
 		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
@@ -61,34 +61,34 @@ export class PrintCoverComponent {
 
 		image.onload = () => imageLoadPromiseHolder.Resolve()
 		image.src = this.imageData
-      await imageLoadPromiseHolder.AwaitResult()
-      
-      let coverWidth = image.width
-      let totalWidthCm = 0
-      let totalHeightCm = 0
-      let spineWidthCm = 0
-      let edgeWidthCm = 0
+		await imageLoadPromiseHolder.AwaitResult()
 
-      if (this.providerDropdownSelectedKey == "bod") {
-         let coverDimensions = await GetCoverDimensions(this.numberOfPages)
+		let coverWidth = image.width
+		let totalWidthCm = 0
+		let totalHeightCm = 0
+		let spineWidthCm = 0
+		let edgeWidthCm = 0
 
-         totalWidthCm = coverDimensions.gbreite_m
-         totalHeightCm = coverDimensions.hoehe_m
-         spineWidthCm = coverDimensions.rueckenbreite
-         edgeWidthCm = coverDimensions.beschnitt
-      } else {
-         totalWidthCm = 30.158
-         totalHeightCm = 22.225
-         spineWidthCm = ((this.numberOfPages / 444) + 0.06) * 2.54
-         edgeWidthCm = 0.3175
-      }
+		if (this.providerDropdownSelectedKey == "bod") {
+			let coverDimensions = await GetCoverDimensions(this.numberOfPages)
 
-      let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
-      let pixelPerCm = coverWidth / coverWidthCm
-      let spineWidth = spineWidthCm * pixelPerCm
-      let totalWidth = totalWidthCm * pixelPerCm
-      let totalHeight = totalHeightCm * pixelPerCm
-      let edgeWidth = edgeWidthCm * pixelPerCm
+			totalWidthCm = coverDimensions.gbreite_m
+			totalHeightCm = coverDimensions.hoehe_m
+			spineWidthCm = coverDimensions.rueckenbreite
+			edgeWidthCm = coverDimensions.beschnitt
+		} else {
+			totalWidthCm = 30.158
+			totalHeightCm = 22.225
+			spineWidthCm = (this.numberOfPages / 444 + 0.06) * 2.54
+			edgeWidthCm = 0.3175
+		}
+
+		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
+		let pixelPerCm = coverWidth / coverWidthCm
+		let spineWidth = spineWidthCm * pixelPerCm
+		let totalWidth = totalWidthCm * pixelPerCm
+		let totalHeight = totalHeightCm * pixelPerCm
+		let edgeWidth = edgeWidthCm * pixelPerCm
 
 		let clippedCoverWidth = coverWidth - edgeWidth
 		let clippedHeight = totalHeight - edgeWidth
@@ -102,7 +102,7 @@ export class PrintCoverComponent {
 
 		// Draw the images
 		let blurCanvas = document.createElement("canvas") as HTMLCanvasElement
-		let blurCanvasContext = blurCanvas.getContext('2d')
+		let blurCanvasContext = blurCanvas.getContext("2d")
 		StackBlur.image(image, blurCanvas, 100, false)
 
 		blurCanvasContext.fillStyle = "#00000088"
@@ -115,8 +115,20 @@ export class PrintCoverComponent {
 		blurCanvasImage.src = blurCanvas.toDataURL()
 		await blurCanvasImageLoadPromiseHolder.AwaitResult()
 
-		this.canvasContext.drawImage(blurCanvasImage, 0, 0, coverWidth, totalHeight)
-		this.canvasContext.drawImage(image, coverWidth + spineWidth, 0, coverWidth, totalHeight)
+		this.canvasContext.drawImage(
+			blurCanvasImage,
+			0,
+			0,
+			coverWidth,
+			totalHeight
+		)
+		this.canvasContext.drawImage(
+			image,
+			coverWidth + spineWidth,
+			0,
+			coverWidth,
+			totalHeight
+		)
 
 		// Draw the spine
 		this.canvasContext.fillStyle = "#394451"
@@ -131,13 +143,19 @@ export class PrintCoverComponent {
 		await logoImageLoadPromiseHolder.AwaitResult()
 
 		// Draw the Standard Ebooks logo on the spine
-		const spineOuterDistance = 64 + (0.5 * pixelPerCm)
+		const spineOuterDistance = 64 + 0.5 * pixelPerCm
 		let logoImageRatio = logoImage.height / logoImage.width
 		let adaptedLogoImageWidth = spineWidth * 0.88
 		if (adaptedLogoImageWidth > 210) adaptedLogoImageWidth = 210
 		let adaptedLogoImageHeight = logoImageRatio * adaptedLogoImageWidth
 
-		this.canvasContext.drawImage(logoImage, coverWidth + ((spineWidth - adaptedLogoImageWidth) / 2), spineOuterDistance, adaptedLogoImageWidth, adaptedLogoImageHeight)
+		this.canvasContext.drawImage(
+			logoImage,
+			coverWidth + (spineWidth - adaptedLogoImageWidth) / 2,
+			spineOuterDistance,
+			adaptedLogoImageWidth,
+			adaptedLogoImageHeight
+		)
 		this.canvasContext.save()
 
 		// Draw the author name on the spine
@@ -150,17 +168,23 @@ export class PrintCoverComponent {
 		this.canvasContext.font = `${spineAuthorNameFontSize}pt Roboto Light`
 
 		// Position the context on the edge of the spine
-		this.canvasContext.translate(totalWidth / 2, totalHeight - spineOuterDistance)
+		this.canvasContext.translate(
+			totalWidth / 2,
+			totalHeight - spineOuterDistance
+		)
 
 		this.canvasContext.rotate((Math.PI / 180) * 270)
 		this.canvasContext.fillText(this.author, 0, 0)
 
 		// Calculate the available space between the author name and the logo
 		let outerDistanceTop = adaptedLogoImageHeight + spineOuterDistance
-		let outerDistanceBottom = this.canvasContext.measureText(this.author).width + spineOuterDistance
+		let outerDistanceBottom =
+			this.canvasContext.measureText(this.author).width + spineOuterDistance
 
 		// Calculate the center between the author name and logo
-		let spineTitleTextCenter = ((totalHeight - outerDistanceTop - outerDistanceBottom) / 2) + outerDistanceTop
+		let spineTitleTextCenter =
+			(totalHeight - outerDistanceTop - outerDistanceBottom) / 2 +
+			outerDistanceTop
 
 		this.canvasContext.restore()
 		this.canvasContext.save()
@@ -181,7 +205,7 @@ export class PrintCoverComponent {
 		this.canvasContext.save()
 
 		// Draw the barcode image on the back
-		let bottomPartHeight = Math.ceil((totalHeight * 0.24) + edgeWidth)
+		let bottomPartHeight = Math.ceil(totalHeight * 0.24 + edgeWidth)
 		let bottomPartStart = totalHeight - bottomPartHeight
 
 		let barcodeImage = new Image()
@@ -198,25 +222,46 @@ export class PrintCoverComponent {
 		// Place the barcode image on the center of the bottom part
 		this.canvasContext.drawImage(
 			barcodeImage,
-			edgeWidth + (clippedCoverWidth / 2) - (barcodeImageWidth / 2),
-			bottomPartStart + (bottomPartHeight / 2) - (barcodeImageHeight / 2),
+			edgeWidth + clippedCoverWidth / 2 - barcodeImageWidth / 2,
+			bottomPartStart + bottomPartHeight / 2 - barcodeImageHeight / 2,
 			barcodeImageWidth,
 			barcodeImageHeight
 		)
 
 		// Generate the blurhash for the bottom part
-		let imageData = this.canvasContext.getImageData(coverWidth + spineWidth, bottomPartStart, coverWidth, bottomPartHeight)
+		let imageData = this.canvasContext.getImageData(
+			coverWidth + spineWidth,
+			bottomPartStart,
+			coverWidth,
+			bottomPartHeight
+		)
 
-		let blurhash = encode(imageData.data, imageData.width, imageData.height, 2, 2)
+		let blurhash = encode(
+			imageData.data,
+			imageData.width,
+			imageData.height,
+			2,
+			2
+		)
 
 		let blurhashPixels = decode(blurhash, coverWidth, bottomPartHeight)
-		let blurhashImageData = this.canvasContext.createImageData(coverWidth, bottomPartHeight)
+		let blurhashImageData = this.canvasContext.createImageData(
+			coverWidth,
+			bottomPartHeight
+		)
 		blurhashImageData.data.set(blurhashPixels)
 
 		// Add the blurhashed bottom part to the canvas
-		this.canvasContext.putImageData(blurhashImageData, coverWidth + spineWidth, bottomPartStart)
+		this.canvasContext.putImageData(
+			blurhashImageData,
+			coverWidth + spineWidth,
+			bottomPartStart
+		)
 
-		let firstBlurhashPixelColor = blurhashImageData.data[0] + blurhashImageData.data[1] + blurhashImageData.data[2]
+		let firstBlurhashPixelColor =
+			blurhashImageData.data[0] +
+			blurhashImageData.data[1] +
+			blurhashImageData.data[2]
 		let textColor = firstBlurhashPixelColor > 382 ? "black" : "white"
 
 		if (this.overwriteSettings) {
@@ -224,7 +269,7 @@ export class PrintCoverComponent {
 		}
 
 		// Get the title
-		let titleParts = this.title.split('\n')
+		let titleParts = this.title.split("\n")
 		let titleFirstLine = titleParts[0]
 		let titleSecondLine = ""
 
@@ -238,12 +283,19 @@ export class PrintCoverComponent {
 		this.canvasContext.textAlign = "center"
 		this.canvasContext.font = `${authorNameFontSize}pt Roboto Light`
 
-		let authorNameYPosition = (bottomPartStart + authorNameFontSize / 2) + ((bottomPartHeight - edgeWidth) / 4)
-		if (titleSecondLine.length > 0) authorNameYPosition = (bottomPartStart + authorNameFontSize / 2) + ((bottomPartHeight - edgeWidth) / 6)
+		let authorNameYPosition =
+			bottomPartStart +
+			authorNameFontSize / 2 +
+			(bottomPartHeight - edgeWidth) / 4
+		if (titleSecondLine.length > 0)
+			authorNameYPosition =
+				bottomPartStart +
+				authorNameFontSize / 2 +
+				(bottomPartHeight - edgeWidth) / 6
 
 		this.canvasContext.fillText(
 			this.author,
-			coverWidth + spineWidth + (clippedCoverWidth / 2),
+			coverWidth + spineWidth + clippedCoverWidth / 2,
 			authorNameYPosition
 		)
 
@@ -256,13 +308,17 @@ export class PrintCoverComponent {
 			// Font sizes: 0-15 length -> 118
 			// + 1 length -> -5 pt
 			if (titleFirstLine.length > 15) {
-				titleFontSize = titleFontSize - ((titleFirstLine.length - 15) * 4)
+				titleFontSize = titleFontSize - (titleFirstLine.length - 15) * 4
 			}
 
-			if (titleSecondLine.length > 0) titleFontSize = Math.ceil(titleFontSize * 0.8)
+			if (titleSecondLine.length > 0)
+				titleFontSize = Math.ceil(titleFontSize * 0.8)
 			this.titleFontSize = titleFontSize
 		}
-		titleFontSize = CalculateFontSizeRelativeToHeight(titleFontSize, clippedHeight)
+		titleFontSize = CalculateFontSizeRelativeToHeight(
+			titleFontSize,
+			clippedHeight
+		)
 
 		this.canvasContext.font = `${titleFontSize}pt Roboto`
 
@@ -270,8 +326,11 @@ export class PrintCoverComponent {
 			// One line of text
 			this.canvasContext.fillText(
 				titleFirstLine,
-				coverWidth + spineWidth + (clippedCoverWidth / 2),
-				(bottomPartStart + titleFontSize / 2) + ((bottomPartHeight - edgeWidth) / 2) + ((bottomPartHeight - edgeWidth) / 7)
+				coverWidth + spineWidth + clippedCoverWidth / 2,
+				bottomPartStart +
+					titleFontSize / 2 +
+					(bottomPartHeight - edgeWidth) / 2 +
+					(bottomPartHeight - edgeWidth) / 7
 			)
 		} else {
 			// Two lines of text
@@ -279,24 +338,29 @@ export class PrintCoverComponent {
 
 			this.canvasContext.fillText(
 				titleFirstLine,
-				coverWidth + spineWidth + (clippedCoverWidth / 2),
-				(authorNameYPosition + titleFontSize / 2) + (bottomTitlePartHeight / 3.3)
+				coverWidth + spineWidth + clippedCoverWidth / 2,
+				authorNameYPosition +
+					titleFontSize / 2 +
+					bottomTitlePartHeight / 3.3
 			)
 
 			this.canvasContext.fillText(
 				titleSecondLine,
-				coverWidth + spineWidth + (clippedCoverWidth / 2),
-				(authorNameYPosition + titleFontSize / 2) + (bottomTitlePartHeight / 2) + (bottomTitlePartHeight / 5)
+				coverWidth + spineWidth + clippedCoverWidth / 2,
+				authorNameYPosition +
+					titleFontSize / 2 +
+					bottomTitlePartHeight / 2 +
+					bottomTitlePartHeight / 5
 			)
 		}
 
 		this.imageDataBase64 = this.canvas.nativeElement.toDataURL("image/jpeg")
 		this.downloadTitle = "printCover.jpg"
-   }
-   
-   ProviderDropdownSelectionChange(event: CustomEvent) {
-      this.providerDropdownSelectedKey = event.detail.key
-   }
+	}
+
+	ProviderDropdownSelectionChange(event: CustomEvent) {
+		this.providerDropdownSelectedKey = event.detail.key
+	}
 
 	async ImageFilePicked(file: ReadFile) {
 		// Read the selected image file
@@ -308,7 +372,9 @@ export class PrintCoverComponent {
 	async BarcodeFilePicked(file: ReadFile) {
 		// Read the selected image file
 		this.barcodeImageName = file.name
-		let barcodeImageBlob = new Blob([file.underlyingFile], { type: file.type })
+		let barcodeImageBlob = new Blob([file.underlyingFile], {
+			type: file.type
+		})
 		this.barcodeImageData = await BlobToBase64(barcodeImageBlob)
 	}
 }

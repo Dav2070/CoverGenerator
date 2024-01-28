@@ -1,30 +1,35 @@
 <div class="d-flex" style="height: 100vh">
-	<div class="w-75 d-flex justify-content-center align-items-center" style="height: 100vh">
-		<canvas
-			#canvas
-			style="max-width: 500px; max-height: 500px;">
-		</canvas>
+	<div
+		class="w-75 d-flex justify-content-center align-items-center"
+		style="height: 100vh"
+	>
+		<canvas #canvas style="max-width: 500px; max-height: 500px"> </canvas>
 	</div>
-	<div class="w-25 d-flex justify-content-center" style="background-color: #eaeaea; height: 100vh">
+	<div
+		class="w-25 d-flex justify-content-center"
+		style="background-color: #eaeaea; height: 100vh"
+	>
 		<form class="mt-5">
-         <label for="provider">Provider</label>
+			<label for="provider">Provider</label>
 
-         <br>
+			<br />
 
-         <dav-dropdown
-            [options]="providerDropdownOptions"
-            [selectedKey]="providerDropdownSelectedKey"
-            (change)="ProviderDropdownSelectionChange($event)">
-         </dav-dropdown>
+			<dav-dropdown
+				[options]="providerDropdownOptions"
+				[selectedKey]="providerDropdownSelectedKey"
+				(change)="ProviderDropdownSelectionChange($event)"
+			>
+			</dav-dropdown>
 
-         <br>
+			<br />
 
 			<button
 				class="btn btn-primary mt-3"
 				type="button"
 				ngxFilePicker
 				accept="image/png,image/jpeg"
-				(filePick)="ImageFilePicked($event)">
+				(filePick)="ImageFilePicked($event)"
+			>
 				Select image
 			</button>
 
@@ -35,46 +40,74 @@
 				type="button"
 				ngxFilePicker
 				accept="image/png,image/jpeg"
-				(filePick)="BarcodeFilePicked($event)">
+				(filePick)="BarcodeFilePicked($event)"
+			>
 				Select barcode image
 			</button>
 
 			<p>{{ barcodeImageName }}</p>
 
 			<div class="mt-3">
-				<label for="author">Author</label><br>
-				<input name="author" type="text" placeholder="Author name" [(ngModel)]="author">
+				<label for="author">Author</label><br />
+				<input
+					name="author"
+					type="text"
+					placeholder="Author name"
+					[(ngModel)]="author"
+				/>
 			</div>
 
 			<div class="mt-3">
-				<label for="title">Title</label><br>
-				<textarea name="title" placeholder="Book title" [(ngModel)]="title" rows="2"></textarea>
+				<label for="title">Title</label><br />
+				<textarea
+					name="title"
+					placeholder="Book title"
+					[(ngModel)]="title"
+					rows="2"
+				></textarea>
 			</div>
 
 			<div class="mt-3">
-				<label for="number-of-pages">Number of pages</label><br>
-				<input name="number-of-pages" placeholder="Number of pages" [(ngModel)]="numberOfPages">
+				<label for="number-of-pages">Number of pages</label><br />
+				<input
+					name="number-of-pages"
+					placeholder="Number of pages"
+					[(ngModel)]="numberOfPages"
+				/>
 			</div>
 
 			<div class="mt-3">
-				<input name="overwrite-settings" type="checkbox" [(ngModel)]="overwriteSettings">
-				<label class="ml-2" for="overwrite-settings">Overwrite settings</label>
+				<input
+					name="overwrite-settings"
+					type="checkbox"
+					[(ngModel)]="overwriteSettings"
+				/>
+				<label class="ml-2" for="overwrite-settings"
+					>Overwrite settings</label
+				>
 			</div>
 
 			<div class="mt-3">
-				<label for="font-size">Title font size</label><br>
-				<input name="font-size" type="number" [(ngModel)]="titleFontSize" [disabled]="!overwriteSettings">
+				<label for="font-size">Title font size</label><br />
+				<input
+					name="font-size"
+					type="number"
+					[(ngModel)]="titleFontSize"
+					[disabled]="!overwriteSettings"
+				/>
 			</div>
 
 			<div class="mt-3">
-				<input name="text-color-black" type="checkbox" [(ngModel)]="titleTextColorBlack" [disabled]="!overwriteSettings">
+				<input
+					name="text-color-black"
+					type="checkbox"
+					[(ngModel)]="titleTextColorBlack"
+					[disabled]="!overwriteSettings"
+				/>
 				<label class="ml-2" for="text-color-black">Black text color</label>
 			</div>
 
-			<button
-				class="mt-3 btn btn-primary"
-				type="button"
-				(click)="Start()">
+			<button class="mt-3 btn btn-primary" type="button" (click)="Start()">
 				Start
 			</button>
 
@@ -83,7 +116,8 @@
 				type="button"
 				[href]="imageDataBase64"
 				[download]="downloadTitle"
-				*ngIf="imageDataBase64">
+				*ngIf="imageDataBase64"
+			>
 				Download
 			</a>
 		</form>
