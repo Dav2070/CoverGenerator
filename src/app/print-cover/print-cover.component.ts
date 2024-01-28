@@ -77,7 +77,7 @@ export class PrintCoverComponent {
          spineWidthCm = coverDimensions.rueckenbreite
          edgeWidthCm = coverDimensions.beschnitt
       } else {
-         totalWidthCm = 30.158
+         totalWidthCm = 29.642
          totalHeightCm = 22.225
          spineWidthCm = ((this.numberOfPages / 444) + 0.06) * 2.54
          edgeWidthCm = 0.3175

@@ -1,4 +1,10 @@
 <div class="m-3">
+   <dav-button
+      ngxFilePicker
+      (filePick)="FilePicked($event)">
+      Select file
+   </dav-button>
+
    <dav-textfield
       placeholder="Epub file URL"
       label="URL"

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core'
+import { ReadFile } from 'ngx-file-helpers'
 import axios from 'axios'
 import * as JSZip from 'jszip'
 import { PromiseHolder } from 'dav-js'
@@ -15,6 +16,21 @@ const documentRelsFileName = "word/_rels/document.xml.rels"
 export class EpubToDocxComponent {
 	isLoading: boolean = false
 	url: string = ""
+
+	async FilePicked(file: ReadFile) {
+		this.isLoading = true
+
+		let outputFileBlob = new Blob([file.underlyingFile], { type: file.type })
+		let zip = await JSZip.loadAsync(outputFileBlob)
+		let parser = new DOMParser()
+		let serializer = new XMLSerializer()
+
+		await this.AdaptDocument(zip, parser, serializer)
+		await this.AdaptSettings(zip, parser, serializer)
+
+		await this.SendDocxFile(zip)
+		this.isLoading = false
+	}
 
 	async Start() {
 		this.isLoading = true
