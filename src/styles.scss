@@ -5,4 +5,10 @@
 
 body {
 	height: 100vh;
+	font-family: "League Spartan";
+}
+
+@font-face {
+	font-family: "League Spartan";
+	src: url("/assets/LeagueSpartan.ttf") format('truetype');
 }
