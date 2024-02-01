@@ -2,6 +2,15 @@ import { Component, ViewChild, ElementRef } from "@angular/core"
 import { ReadFile } from "ngx-file-helpers"
 import { BlobToBase64, PromiseHolder } from "dav-js"
 import * as StackBlur from "stackblur-canvas"
+import {
+	Document,
+	Packer,
+	Paragraph,
+	TextRun,
+	ImageRun,
+	FrameAnchorType,
+	convertMillimetersToTwip
+} from "docx"
 
 @Component({
 	selector: "app-print-cover",
@@ -172,8 +181,79 @@ export class PrintCoverComponent {
 		this.canvasContext.restore()
 		this.canvasContext.save()
 
-		this.imageDataBase64 = this.canvas.nativeElement.toDataURL("image/jpeg")
-		this.downloadTitle = "printCover.jpg"
+		const docxUnitFactor = 100 / 2.65
+		const fullCoverWidth = coverWidthCm * 2 + spineWidthCm
+		const fullCoverHeight = totalHeightCm
+		const fullCoverHeightMm = totalHeightCm * 10
+		const coverWidthHalfMm = coverWidthCm * 10
+
+		const doc = new Document({
+			sections: [
+				{
+					properties: {
+						page: {
+							size: {
+								width: `${fullCoverWidth}cm`,
+								height: `${fullCoverHeight}cm`
+							}
+						}
+					},
+					children: [
+						new Paragraph({
+							children: [
+								new ImageRun({
+									data: this.canvas.nativeElement.toDataURL(
+										"image/jpeg"
+									),
+									transformation: {
+										width: fullCoverWidth * docxUnitFactor,
+										height: fullCoverHeight * docxUnitFactor
+									},
+									floating: {
+										horizontalPosition: {
+											offset: 0
+										},
+										verticalPosition: {
+											offset: 0
+										},
+										behindDocument: true
+									}
+								})
+							]
+						}),
+						new Paragraph({
+							frame: {
+								type: "absolute",
+								position: {
+									x: convertMillimetersToTwip(coverWidthHalfMm * 0.2),
+									y: convertMillimetersToTwip(fullCoverHeightMm * 0.1)
+								},
+								width: convertMillimetersToTwip(coverWidthHalfMm * 0.6),
+								height: convertMillimetersToTwip(
+									fullCoverHeightMm * 0.8
+								),
+								anchor: {
+									horizontal: FrameAnchorType.PAGE,
+									vertical: FrameAnchorType.PAGE
+								}
+							},
+							children: [
+								new TextRun({
+									text: this.title,
+									font: "League Spartan",
+									size: "18pt",
+									color: "#ffffff"
+								})
+							]
+						})
+					]
+				}
+			]
+		})
+
+		let docData = await Packer.toBase64String(doc)
+		this.imageDataBase64 = `data:application/pdf;base64,${docData}`
+		this.downloadTitle = "printCover.docx"
 	}
 
 	async backgroundImageFilePicked(file: ReadFile) {
