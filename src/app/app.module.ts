@@ -11,8 +11,8 @@ import { PrintCoverComponent } from "./print-cover/print-cover.component"
 import { PrintCoverLegacyComponent } from "./print-cover-legacy/print-cover-legacy.component"
 
 const routes: Routes = [
-	{ path: "", component: CoverComponent },
-	{ path: "print-cover", component: PrintCoverComponent },
+	{ path: "", component: PrintCoverComponent },
+	{ path: "cover", component: CoverComponent },
 	{ path: "print-cover-legacy", component: PrintCoverLegacyComponent }
 ]
 
