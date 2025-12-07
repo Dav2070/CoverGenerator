@@ -1,0 +1,247 @@
+import { Component, ViewChild, ElementRef } from "@angular/core"
+import { ReadFile } from "ngx-file-helpers"
+import { BlobToBase64, PromiseHolder } from "dav-js"
+import * as StackBlur from "stackblur-canvas"
+import {
+	Document,
+	Packer,
+	Paragraph,
+	TextRun,
+	ImageRun,
+	FrameAnchorType,
+	convertMillimetersToTwip
+} from "docx"
+
+@Component({
+	selector: "app-print-cover2",
+	templateUrl: "./print-cover2.component.html"
+})
+export class PrintCover2Component {
+	@ViewChild("canvas", { static: true }) canvas: ElementRef<HTMLCanvasElement>
+	canvasContext: CanvasRenderingContext2D
+	coverImageName: string = ""
+	coverImageData: string = null
+	imageWidth: number = 500
+	imageHeight: number = 500
+	author: string = ""
+	title: string = ""
+	numberOfPages: number = 0
+	imageDataBase64: string = ""
+	downloadTitle: string = ""
+
+	ngOnInit() {
+		this.canvasContext = this.canvas.nativeElement.getContext("2d")
+	}
+
+	async Start() {
+		if (this.coverImageData == null) {
+			return
+		}
+
+		// Clear the canvas
+		this.canvasContext.clearRect(0, 0, this.imageWidth, this.imageHeight)
+
+		// Load the cover image
+		let coverImage = new Image()
+		let coverImageLoadPromiseHolder = new PromiseHolder()
+
+		coverImage.onload = () => coverImageLoadPromiseHolder.Resolve()
+		coverImage.src = this.coverImageData
+		await coverImageLoadPromiseHolder.AwaitResult()
+
+		let coverWidth = coverImage.width
+		let totalWidthCm = 32.977
+		let totalHeightCm = 22.225
+		let spineWidthCm = (this.numberOfPages / 444 + 0.06) * 2.54
+
+		let coverWidthCm = (totalWidthCm - spineWidthCm) / 2
+		let pixelPerCm = coverWidth / coverWidthCm
+		let spineWidth = spineWidthCm * pixelPerCm
+		let totalWidth = totalWidthCm * pixelPerCm
+		let totalHeight = totalHeightCm * pixelPerCm
+
+		this.imageWidth = totalWidth
+		this.imageHeight = totalHeight
+
+		// Set the correct dimensions of the canvas and draw the image
+		this.canvas.nativeElement.width = this.imageWidth
+		this.canvas.nativeElement.height = this.imageHeight
+
+		// Draw the images
+		let blurCanvas = document.createElement("canvas") as HTMLCanvasElement
+		let blurCanvasContext = blurCanvas.getContext("2d")
+		StackBlur.image(coverImage, blurCanvas, 100, false)
+
+		blurCanvasContext.fillStyle = "#00000088"
+		blurCanvasContext.fillRect(0, 0, coverWidth, totalHeight)
+
+		let blurCanvasImage = new Image()
+		let blurCanvasImageLoadPromiseHolder = new PromiseHolder()
+
+		blurCanvasImage.onload = () => blurCanvasImageLoadPromiseHolder.Resolve()
+		blurCanvasImage.src = blurCanvas.toDataURL()
+		await blurCanvasImageLoadPromiseHolder.AwaitResult()
+
+		this.canvasContext.drawImage(
+			blurCanvasImage,
+			0,
+			0,
+			coverWidth,
+			totalHeight
+		)
+		this.canvasContext.drawImage(
+			coverImage,
+			coverWidth + spineWidth,
+			0,
+			coverWidth,
+			totalHeight
+		)
+
+		// Draw the spine
+		this.canvasContext.fillStyle = "#222"
+		this.canvasContext.fillRect(coverWidth, 0, spineWidth, totalHeight)
+
+		// Draw the Standard Ebooks logo on the spine
+		const spineOuterDistance = 64 + 0.5 * pixelPerCm
+
+		/*
+		this.canvasContext.drawImage(
+			logoImage,
+			coverWidth + (spineWidth - adaptedLogoImageWidth) / 2,
+			spineOuterDistance,
+			adaptedLogoImageWidth,
+			adaptedLogoImageHeight
+		)
+		this.canvasContext.save()
+		*/
+
+		// Draw the author name on the spine
+		let spineAuthorNameFontSize = spineWidth * 0.29
+		if (spineAuthorNameFontSize > 58) spineAuthorNameFontSize = 58
+
+		this.canvasContext.fillStyle = "white"
+		this.canvasContext.textAlign = "left"
+		this.canvasContext.textBaseline = "middle"
+		this.canvasContext.font = `${spineAuthorNameFontSize}pt League Spartan`
+
+		// Position the context on the edge of the spine
+		this.canvasContext.translate(
+			totalWidth / 2,
+			totalHeight - spineOuterDistance
+		)
+
+		this.canvasContext.rotate((Math.PI / 180) * 270)
+		this.canvasContext.fillText(this.author, 0, 0)
+
+		/*
+		// Calculate the available space between the author name and the logo
+		let outerDistanceTop = adaptedLogoImageHeight + spineOuterDistance
+		let outerDistanceBottom =
+			this.canvasContext.measureText(this.author).width + spineOuterDistance
+
+		// Calculate the center between the author name and logo
+		let spineTitleTextCenter =
+			(totalHeight - outerDistanceTop - outerDistanceBottom) / 2 +
+			outerDistanceTop
+
+		this.canvasContext.restore()
+		this.canvasContext.save()
+		*/
+
+		// Draw the title on the spine
+		let spineTitleFontSize = spineWidth * 0.32
+		//if (spineTitleFontSize > 64) spineTitleFontSize = 64
+
+		this.canvasContext.fillStyle = "white"
+		this.canvasContext.textAlign = "center"
+		this.canvasContext.textBaseline = "middle"
+		this.canvasContext.font = `${spineTitleFontSize}pt League Spartan`
+		this.canvasContext.translate(totalWidth / 2, totalHeight - spineOuterDistance)
+		//this.canvasContext.rotate((Math.PI / 180) * 270)
+		this.canvasContext.fillText(this.title, 0, 0)
+
+		this.canvasContext.restore()
+		this.canvasContext.save()
+
+		const docxUnitFactor = 100 / 2.65
+		const fullCoverWidth = coverWidthCm * 2 + spineWidthCm
+		const fullCoverHeight = totalHeightCm
+		const fullCoverHeightMm = totalHeightCm * 10
+		const coverWidthHalfMm = coverWidthCm * 10
+
+		const doc = new Document({
+			sections: [
+				{
+					properties: {
+						page: {
+							size: {
+								width: `${fullCoverWidth}cm`,
+								height: `${fullCoverHeight}cm`
+							}
+						}
+					},
+					children: [
+						new Paragraph({
+							children: [
+								new ImageRun({
+									data: this.canvas.nativeElement.toDataURL(
+										"image/jpeg"
+									),
+									transformation: {
+										width: fullCoverWidth * docxUnitFactor,
+										height: fullCoverHeight * docxUnitFactor
+									},
+									floating: {
+										horizontalPosition: {
+											offset: 0
+										},
+										verticalPosition: {
+											offset: 0
+										},
+										behindDocument: true
+									}
+								})
+							]
+						}),
+						new Paragraph({
+							frame: {
+								type: "absolute",
+								position: {
+									x: convertMillimetersToTwip(coverWidthHalfMm * 0.2),
+									y: convertMillimetersToTwip(fullCoverHeightMm * 0.1)
+								},
+								width: convertMillimetersToTwip(coverWidthHalfMm * 0.6),
+								height: convertMillimetersToTwip(
+									fullCoverHeightMm * 0.8
+								),
+								anchor: {
+									horizontal: FrameAnchorType.PAGE,
+									vertical: FrameAnchorType.PAGE
+								}
+							},
+							children: [
+								new TextRun({
+									text: this.title,
+									font: "Arial",
+									size: "18pt",
+									color: "#ffffff"
+								})
+							]
+						})
+					]
+				}
+			]
+		})
+
+		let docData = await Packer.toBase64String(doc)
+		this.imageDataBase64 = `data:application/pdf;base64,${docData}`
+		this.downloadTitle = "printCover.docx"
+	}
+
+	async coverImageFilePicked(file: ReadFile) {
+		// Read the selected image file
+		this.coverImageName = file.name
+		let imageBlob = new Blob([file.underlyingFile], { type: file.type })
+		this.coverImageData = await BlobToBase64(imageBlob)
+	}
+}
